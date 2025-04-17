@@ -1,8 +1,6 @@
-// Import required modules
 const { Client, GatewayIntentBits } = require('discord.js');
 const axios = require('axios');
 
-// Create a new Discord client with necessary intents
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -11,16 +9,13 @@ const client = new Client({
     ],
 });
 
-// Bot token and API key
 const DISCORD_TOKEN = "YOUR_DISCORD_BOT_TOKEN_HERE";
 const NEWS_API_KEY = "YOUR_NEWS_API_KEY_HERE";
 
-// Log a message when the bot is ready
 client.once('ready', () => {
     console.log(`Bot is online! Logged in as ${client.user.tag}`);
 });
 
-// Helper function to fetch news
 async function fetchNews(category) {
     const baseUrl = "https://newsapi.org/v2/top-headlines";
     const country = category === "nepal" ? "np" : "us";
@@ -43,12 +38,9 @@ async function fetchNews(category) {
     }
 }
 
-// Listen for messages
 client.on('messageCreate', async (message) => {
-    // Ignore messages from the bot itself
     if (message.author.bot) return;
 
-    // Command to fetch general cybersecurity news
     if (message.content.toLowerCase() === "cybersecurity news") {
         message.reply("Fetching top 10 cybersecurity news...");
         const news = await fetchNews("general");
@@ -60,7 +52,6 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    // Command to fetch Nepal-specific cybersecurity news
     if (message.content.toLowerCase() === "nepal cybersecurity news") {
         message.reply("Fetching top 10 cybersecurity news related to Nepal...");
         const news = await fetchNews("nepal");
@@ -71,12 +62,8 @@ client.on('messageCreate', async (message) => {
             message.reply("Sorry, I couldn't fetch Nepal-specific news at the moment.");
         }
     }
-
-    // Ping command
     if (message.content.toLowerCase() === "ping") {
         message.reply("Pong!");
     }
 });
-
-// Login to Discord with the bot token
 client.login(DISCORD_TOKEN);
