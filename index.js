@@ -1,6 +1,6 @@
-require('dotenv').config({ path: './config.env' });
 const { Client, GatewayIntentBits } = require('discord.js');
 const axios = require('axios');
+require('dotenv').config();
 
 const client = new Client({
     intents: [
@@ -14,29 +14,28 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const NEWS_API_KEY = process.env.NEWS_API_KEY;
 
 client.once('ready', () => {
-    console.log(`Bot is online as ${client.user.tag}`);
+    console.log(`Bot is online! Logged in as ${client.user.tag}`);
 });
 
-async function fetchNews(countryCode = "us") {
-    const url = "https://newsapi.org/v2/top-headlines";
+async function fetchNews(category) {
+    const baseUrl = "https://newsapi.org/v2/top-headlines";
+    const country = category === "nepal" ? "np" : "us";
 
     try {
-        const { data } = await axios.get(url, {
+        const response = await axios.get(baseUrl, {
             params: {
                 apiKey: NEWS_API_KEY,
-                country: countryCode,
+                country: country,
                 category: "technology",
                 pageSize: 10,
             },
         });
 
-        if (!data.articles.length) return "No news found.";
-        return data.articles
-            .map((article, i) => `**${i + 1}. [${article.title}](${article.url})**`)
-            .join("\n");
-    } catch (err) {
-        console.error("Error fetching news:", err.message);
-        return "Error fetching news.";
+        const articles = response.data.articles;
+        return articles.map((article, index) => `**${index + 1}. [${article.title}](${article.url})**`).join("\n");
+    } catch (error) {
+        console.error("Error fetching news:", error.message);
+        return null;
     }
 }
 
@@ -45,20 +44,20 @@ client.on('messageCreate', async (message) => {
 
     const content = message.content.toLowerCase();
 
-    if (content === "ping") {
-        return message.reply("Pong!");
-    }
-
     if (content === "cybersecurity news") {
-        message.reply("Fetching top cybersecurity news...");
-        const news = await fetchNews("us");
-        return message.reply(news);
+        message.reply("Fetching top 10 cybersecurity news...");
+        const news = await fetchNews("general");
+        message.reply(news || "Sorry, I couldn't fetch the news.");
     }
 
     if (content === "nepal cybersecurity news") {
-        message.reply("Fetching Nepal cybersecurity news...");
-        const news = await fetchNews("np");
-        return message.reply(news);
+        message.reply("Fetching top 10 cybersecurity news related to Nepal...");
+        const news = await fetchNews("nepal");
+        message.reply(news || "Sorry, I couldn't fetch Nepal-specific news.");
+    }
+
+    if (content === "ping") {
+        message.reply("Pong!");
     }
 });
 
